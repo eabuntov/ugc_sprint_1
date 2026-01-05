@@ -16,7 +16,7 @@ def create_consumer(settings: Settings) -> Consumer:
 
 
 class ClickHouseWriter:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings):
         self.client = Client(
             host=settings.clickhouse_host,
             database=settings.clickhouse_database,
@@ -27,6 +27,7 @@ class ClickHouseWriter:
     def insert_events(self, events: list[Event]):
         data = [
             (
+                e.event_id,
                 e.event_date,
                 e.event_time,
                 e.event_type,
@@ -42,9 +43,9 @@ class ClickHouseWriter:
         self.client.execute(
             """
             INSERT INTO events_raw (
-                event_date, event_time, event_type,
-                user_id, session_id, page_url,
-                element_id, metadata
+                event_id, event_date, event_time,
+                event_type, user_id, session_id,
+                page_url, element_id, metadata
             ) VALUES
             """,
             data
