@@ -1,0 +1,4 @@
+clickhouse-connect-0.10.0
+vertica-python-1.4.0
+faker-40.1.0
+tqdm-4.67.1
