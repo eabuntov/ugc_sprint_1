@@ -16,7 +16,7 @@ def run():
         settings.flush_interval_sec
     )
 
-    consumer.subscribe(settings.kafka_topics)
+    consumer.subscribe(settings.kafka_topics.split(","))
 
     try:
         while True:
@@ -42,3 +42,6 @@ def run():
             writer.insert_events(buffer.buffer)
             consumer.commit()
         consumer.close()
+
+if __name__ == "__main__":
+    run()

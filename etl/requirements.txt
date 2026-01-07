@@ -1,0 +1,4 @@
+pydantic==2.12.5
+confluent-kafka==2.12.2
+clickhouse-driver==0.2.10
+pydantic-settings==2.12.0
