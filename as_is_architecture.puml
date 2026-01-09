@@ -1,0 +1,64 @@
+@startuml
+
+
+title Online Cinema Platform – Service Prototype Architecture
+
+top to bottom direction
+
+actor User
+actor Admin
+
+package "Docker Network: app-network" {
+
+  component "NGINX\n(Reverse Proxy)" as nginx
+
+  together {
+    component "Django Admin\n(movies_admin)" as django
+    component "FastAPI App\n(API Gateway / Public API)" as fastapi
+  }
+
+  component "Auth Service" as auth
+  component "ETL Worker" as etl
+
+  database "Theatre DB\n(PostgreSQL)" as theatre_db
+  database "Auth DB\n(PostgreSQL)" as auth_db
+  database "Redis\n(Cache / Queue)" as redis
+  database "Auth Redis" as auth_redis
+  database "Elasticsearch\n(Search / Analytics)" as es
+
+  component "Jaeger\n(Tracing)" as jaeger
+}
+
+User --> nginx : HTTP(S)
+Admin --> nginx : HTTP(S)
+
+nginx --> django : Admin UI
+nginx --> fastapi : Public API
+
+django --> auth : Auth requests
+fastapi --> auth : Auth requests
+
+auth --> auth_db : users / tokens
+auth --> auth_redis : sessions
+auth --> jaeger : traces
+
+django --> theatre_db : ORM queries
+django --> redis : cache (optional)
+
+fastapi --> es : search / read models
+fastapi --> redis : cache / pub-sub
+fastapi --> jaeger : traces
+
+theatre_db --> etl : source data
+etl --> redis : consume tasks
+etl --> es : index data
+etl --> fastapi : health dependency
+
+note left of etl
+ETL starts only after:
+- FastAPI healthy
+- Redis healthy
+- Elasticsearch healthy
+end note
+
+@enduml
