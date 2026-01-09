@@ -5,19 +5,40 @@ services:
     image: apache/kafka:4.1.1
     container_name: kafka
     hostname: kafka
-    ports:
-      - "9092:9092"
+    expose:
+      - "9092"
     networks:
       - app-network
     env_file:
       - kafka.env
+    healthcheck:
+      test: /kafka/bin/kafka-cluster.sh cluster-id --bootstrap-server kafka:9092 || exit 1
+      interval: 1s
+      timeout: 60s
+      retries: 60
+
+  ingest-api:
+    build:
+      context: ./ingest_api
+    container_name: ingest-api
+    expose:
+      - "8005"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    volumes:
+      - ./ingest_api:/opt/app
+    networks:
+      - app-network
+    depends_on:
+      - kafka
+    restart: unless-stopped
 
   clickhouse:
     image: clickhouse/clickhouse-server:25.12
     container_name: clickhouse
-    ports:
-      - "8123:8123"
-      - "9000:9000"
+    expose:
+      - "8123"
+      - "9000"
     ulimits:
       nofile:
         soft: 262144
