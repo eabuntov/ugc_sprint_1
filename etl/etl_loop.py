@@ -17,26 +17,26 @@ def run():
     )
 
     consumer.subscribe(settings.kafka_topics.split(","))
-
     try:
         while True:
-            msg = consumer.poll(timeout=1.0)
-            if msg is None:
-                continue
-            if msg.error():
-                logging.error(msg.error())
-                continue
+            try:
+                msg = consumer.poll(timeout=1.0)
+                if msg is None:
+                    continue
+                if msg.error():
+                    logging.error(msg.error())
+                    continue
 
-            payload = json.loads(msg.value())
-            event = Event(**payload)
+                payload = json.loads(msg.value())
+                event = Event(**payload)
 
-            if buffer.add(event):
-                batch = buffer.flush()
-                writer.insert_events(batch)
-                consumer.commit()
+                if buffer.add(event):
+                    batch = buffer.flush()
+                    writer.insert_events(batch)
+                    consumer.commit()
 
-    except KeyboardInterrupt:
-        pass
+            except KeyboardInterrupt:
+                break
     finally:
         if buffer.buffer:
             writer.insert_events(buffer.buffer)
