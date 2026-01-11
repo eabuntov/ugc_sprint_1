@@ -1,5 +1,7 @@
 import json
 import time
+from gevent import monkey
+monkey.patch_all()
 from flask import Flask, request, jsonify
 from confluent_kafka import Producer
 
